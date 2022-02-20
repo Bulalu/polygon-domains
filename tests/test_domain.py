@@ -1,13 +1,15 @@
+from scripts.helpful_scripts import get_account
 from brownie import Domains, accounts
 import brownie
+
 def deploy_domain():
-    account = accounts[0]
+    account = get_account()
     _domain = Domains.deploy({"from": account})
     return _domain
 
 
 def test_register():
-    owner = accounts[0]
+    owner = get_account()
     domain = deploy_domain()
     name = "iconic ace"
     domain.register(name, {"from":owner})
@@ -16,7 +18,7 @@ def test_register():
         domain.register(name, {"from": owner})
 
 def test_setRecords():
-    owner = accounts[0]
+    owner = get_account()
     domain = deploy_domain()
     name = "iconic ace"
     record = "Upcoming millionaire and he's still very young and has a promissing future"
@@ -25,3 +27,4 @@ def test_setRecords():
         domain.setRecords("FAKE", record, {"from": owner})
     domain.setRecords(name, record, {"from": owner})
     assert domain.getRecord(name) == record
+
