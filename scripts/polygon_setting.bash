@@ -1,0 +1,2 @@
+
+brownie networks add Polygon mumbai_moralis host="https://speedy-nodes-nyc.moralis.io/851f688a64f29e9bb9410d3c/polygon/mumbai" name="Mumbai {Moralis}" chainid=80001 explorer="https://explorer-mumbai.maticvigil.com/"
