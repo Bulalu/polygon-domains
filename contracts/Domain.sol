@@ -23,7 +23,16 @@ contract Domains is ERC721URIStorage {
     mapping(string => address) public domains;
 
     mapping(string => string) public records;
+
+    mapping(uint => string) public names;
+
+    error Unauthorized();
+    error AlreadyRegistered();
+    error InvalidName(string name);
+
+    address payable public owner;
     constructor(string memory _tld) payable ERC721("Ace Name Service", "ACE"){
+        owner = payable(msg.sender);
         tld = _tld;
     }
 
@@ -44,7 +53,8 @@ contract Domains is ERC721URIStorage {
     }
     function register(string calldata name) public payable {
         // Check that domain is unregistered
-        require(domains[name] == address(0));
+        if (domains[name] != address(0)) revert AlreadyRegistered();
+        if (!valid(name)) revert InvalidName(name);
         uint _price = price(name);
         require(msg.value >= _price, "Not enough Matic paid");
 
@@ -79,8 +89,23 @@ contract Domains is ERC721URIStorage {
         _safeMint(msg.sender, newRecordId);
         _setTokenURI(newRecordId, finalTokenUri);
         domains[name] = msg.sender;
-        
+        names[newRecordId] = name;
         _tokenIds.increment();
+    }
+
+    modifier onlyOwner() {
+        require(isOwner());
+        _;
+    }
+
+    function isOwner() public view returns (bool) {
+        return msg.sender == owner;
+    }
+
+    function withdraw() public onlyOwner {
+        uint amount = address(this).balance;
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Failed to withdraw MATIC");
     }
 
     function getAddress(string calldata name) public view returns(address) {
@@ -88,13 +113,27 @@ contract Domains is ERC721URIStorage {
     }
 
     function setRecords(string calldata name, string calldata record) public {
-        require(domains[name] == msg.sender);
+        // require(domains[name] == msg.sender);
+        if (msg.sender != domains[name]) revert Unauthorized();
         records[name] = record;
     }
 
     function getRecord(string calldata name) public view returns(string memory) {
         return records[name];
     }
+
+    function getAllNames() public view returns(string[] memory) {
+        string[] memory allNames = new string[](_tokenIds.current());
+        for (uint i = 0; i < _tokenIds.current(); i++) {
+            allNames[i] = names[i];
+
+        }
+        return allNames;
+    }
+
+    function valid(string calldata name) public pure returns(bool) {
+        return StringUtils.strlen(name) >= 3 && StringUtils.strlen(name) <= 10;
+        }
 
     
 }
