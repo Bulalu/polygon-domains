@@ -1,7 +1,7 @@
 from scripts.helpful_scripts import get_account
 from brownie import Domains, accounts
 import brownie
-from force.scripts.deploy.deploy_domains import deploy_domain
+from scripts.deploy.deploy_domains import deploy_domain
 from web3 import Web3
 # def deploy_domain():
 #     account = get_account()
@@ -13,11 +13,15 @@ print(amount)
 def test_register():
     owner = get_account()
     domain = deploy_domain()
-    name = "iconic ace"
+    name = "iconic"
+
+    with brownie.reverts():
+        domain.register(name, {"from":owner, "value": 0})
+
     domain.register(name, {"from":owner, "value": amount})
     assert domain.getAddress(name) == owner.address
-    with brownie.reverts():
-        domain.register(name, {"from":owner, "value": amount})
+    assert name in domain.getAllNames()
+
 
 def test_setRecords():
     owner = get_account()
